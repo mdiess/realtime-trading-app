@@ -1,10 +1,6 @@
-const WS_URL = "ws://localhost:8000/ws/prices";
+import { PriceUpdate } from "./types";
 
-export interface PriceUpdate {
-    symbol: string;
-    price: number;
-    timestamp: number;
-}
+const WS_URL = "ws://localhost:8000/ws/prices";
 
 /**
  * Opens a WebSocket connection to the price stream and calls `callback`

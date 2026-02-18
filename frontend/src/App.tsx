@@ -1,109 +1,92 @@
-import React, { useEffect, useState } from "react";
-import { connectToPriceStream, PriceUpdate } from "./websocket";
+import { useCallback, useEffect, useState } from "react";
+import { connectToPriceStream } from "./websocket";
+import { PriceUpdate, StockData, ChartPoint } from "./types";
+import { DEFAULT_SYMBOL } from "./constants";
+import Navbar from "./components/Navbar";
+import MarketOverview from "./components/MarketOverview";
+import Watchlist from "./components/Watchlist";
+import PriceChart from "./components/PriceChart";
+import StockDetails from "./components/StockDetails";
+import MarketNews from "./components/MarketNews";
+import "./App.css";
 
-// Keyed by symbol so each row updates in-place rather than appending.
-type PriceMap = Record<string, PriceUpdate>;
+// Maximum historical data points kept per symbol for charting.
+const MAX_HISTORY = 100;
 
 function App() {
-    const [prices, setPrices] = useState<PriceMap>({});
+    const [stocks, setStocks] = useState<Record<string, StockData>>({});
+    const [selectedSymbol, setSelectedSymbol] = useState<string>(DEFAULT_SYMBOL);
     const [connected, setConnected] = useState(false);
 
-    useEffect(() => {
-        const socket = connectToPriceStream((update: PriceUpdate) => {
-            setConnected(true);
-            setPrices((prev) => ({
+    const handlePriceUpdate = useCallback((update: PriceUpdate) => {
+        setConnected(true);
+
+        setStocks((prev) => {
+            const existing = prev[update.symbol];
+
+            // First tick for this symbol becomes the session "open" price.
+            const open      = existing?.open ?? update.price;
+            const high      = existing ? Math.max(existing.high, update.price) : update.price;
+            const low       = existing ? Math.min(existing.low,  update.price) : update.price;
+            const change    = update.price - open;
+            const changePct = open !== 0 ? (change / open) * 100 : 0;
+
+            const point: ChartPoint = {
+                price: update.price,
+                timestamp: update.timestamp,
+                time: new Date(update.timestamp * 1000).toLocaleString("en-US", {
+                    month: "numeric",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                } as Intl.DateTimeFormatOptions),
+            };
+
+            const history = existing
+                ? [...existing.history.slice(-(MAX_HISTORY - 1)), point]
+                : [point];
+
+            return {
                 ...prev,
-                [update.symbol]: update,
-            }));
+                [update.symbol]: { symbol: update.symbol, price: update.price, open, high, low, change, changePct, history },
+            };
         });
-
-        socket.onclose = () => setConnected(false);
-
-        // Close the WebSocket cleanly when the component unmounts.
-        return () => socket.close();
     }, []);
 
-    const rows = Object.values(prices);
+    useEffect(() => {
+        const socket = connectToPriceStream(handlePriceUpdate);
+        socket.onclose = () => setConnected(false);
+        return () => socket.close();
+    }, [handlePriceUpdate]);
 
     return (
-        <div style={styles.container}>
-            <h1 style={styles.heading}>Live Crypto Prices</h1>
+        <div className="app">
+            <Navbar connected={connected} />
 
-            <p style={{ ...styles.status, color: connected ? "#22c55e" : "#ef4444" }}>
-                {connected ? "● Connected" : "○ Connecting…"}
-            </p>
+            <div className="content">
+                <MarketOverview stocks={stocks} />
 
-            {rows.length === 0 ? (
-                <p style={styles.empty}>Waiting for price data…</p>
-            ) : (
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={styles.th}>Symbol</th>
-                            <th style={styles.th}>Price (USD)</th>
-                            <th style={styles.th}>Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((update) => (
-                            <tr key={update.symbol} style={styles.row}>
-                                <td style={styles.td}>{update.symbol}</td>
-                                <td style={{ ...styles.td, fontWeight: 600 }}>
-                                    $
-                                    {update.price.toLocaleString("en-US", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    })}
-                                </td>
-                                <td style={{ ...styles.td, color: "#888" }}>
-                                    {new Date(update.timestamp * 1000).toLocaleTimeString()}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
+                <div className="dashboard-grid">
+                    <Watchlist
+                        stocks={stocks}
+                        selectedSymbol={selectedSymbol}
+                        onSelect={setSelectedSymbol}
+                    />
+
+                    <div className="right-panel">
+                        <PriceChart stock={stocks[selectedSymbol]} symbol={selectedSymbol} />
+
+                        <div className="bottom-row">
+                            <StockDetails stock={stocks[selectedSymbol]} symbol={selectedSymbol} />
+                            <MarketNews />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-    container: {
-        padding: "32px",
-        fontFamily: "'Courier New', Courier, monospace",
-        maxWidth: 640,
-        margin: "0 auto",
-    },
-    heading: {
-        fontSize: "1.6rem",
-        marginBottom: 4,
-    },
-    status: {
-        fontSize: "0.85rem",
-        marginBottom: 24,
-    },
-    empty: {
-        color: "#888",
-    },
-    table: {
-        width: "100%",
-        borderCollapse: "collapse",
-    },
-    th: {
-        padding: "10px 14px",
-        textAlign: "left",
-        borderBottom: "2px solid #333",
-        fontSize: "0.85rem",
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
-    },
-    td: {
-        padding: "10px 14px",
-        borderBottom: "1px solid #e5e7eb",
-    },
-    row: {
-        transition: "background 0.2s",
-    },
-};
 
 export default App;
