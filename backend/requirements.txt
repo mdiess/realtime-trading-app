@@ -1,0 +1,30 @@
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.12.1
+asyncpg==0.31.0
+Bottleneck @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_33wnmqdh9g/croot/bottleneck_1731058648266/work
+click==8.3.1
+fastapi==0.129.0
+greenlet==3.3.1
+h11==0.16.0
+idna==3.11
+numexpr @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_9dass5qxdx/croot/numexpr_1752521725325/work
+numpy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_3bjtze2puh/croot/numpy_and_numpy_base_1750883809276/work/dist/numpy-2.3.1-cp312-cp312-macosx_10_15_x86_64.whl#sha256=5b9200c9aacc7b9acc433ee556935ff0832b92f939262be2c201eb4cb9e623d5
+pandas @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_ecxvylr68h/croot/pandas_1752846043443/work/dist/pandas-2.3.1-cp312-cp312-macosx_10_15_x86_64.whl#sha256=2ee08af927eeeeec1a2fd91b9237e764750d250884cce2487ea03c34f29017fa
+psycopg2-binary==2.9.11
+pydantic==2.12.5
+pydantic_core==2.41.5
+python-dateutil @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_efk5_uakg8/croot/python-dateutil_1716495742183/work
+python-dotenv==1.2.1
+pytz @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_11bbnopadc/croot/pytz_1752135868440/work
+redis==7.2.0
+setuptools==72.1.0
+six @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_2e3n1z57yz/croot/six_1744271514562/work
+SQLAlchemy==2.0.46
+starlette==0.52.1
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+tzdata @ file:///home/task_176829656558347/croot/python-tzdata_1768296637279/work
+uvicorn==0.41.0
+websockets==16.0
+wheel==0.45.1
